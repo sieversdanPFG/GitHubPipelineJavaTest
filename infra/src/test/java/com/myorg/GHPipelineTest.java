@@ -17,7 +17,7 @@ public class GHPipelineTest {
     @Test
     public void testStack() throws IOException {
         App app = new App();
-        InfraStack stack = new InfraStack(app, "test");
+        GHPipelineTestStack stack = new GHPipelineTestStack(app, "test");
 
         // synthesize the stack to a CloudFormation template
         JsonNode actual = JSON.valueToTree(app.synth().getStackArtifact(stack.getArtifactId()).getTemplate());
