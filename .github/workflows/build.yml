@@ -10,8 +10,8 @@ on:
 env:
   CDK_DIRECTORY: "infra"
 jobs:
-  Build and Deploy to Test:
-    name: Build
+  Build:
+    name: Build and Deploy to Test
     environment: Test
     runs-on: ubuntu-latest
 
