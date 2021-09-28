@@ -30,7 +30,7 @@ jobs:
         run: |
           npm install -g aws-cdk
       - name: Build with Maven
-          run: mvn package
+          run: mvn -B package
   Deploy-To-Test:
     name: Deploy to Test
     needs: build
