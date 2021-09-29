@@ -1,18 +1,17 @@
-name: Java CI with Maven
+name: Build and Deploy to Test
 
 on:
   push:
     branches:
-      - main
+      - dev
   pull_request:
     branches:
-      - main
+      - dev
 env:
   CDK_DIRECTORY: "infra"
 jobs:
   Build:
-    name: Build and Deploy to Test
-    environment: Test
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +23,18 @@ jobs:
           java-version: 1.8
       - name: Build with Maven
         run: mvn -B package --file pom.xml
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Debug
+        run: ls -la
+        working-directory: ${{ env.CDK_DIRECTORY }}
+  Deploy-To-Test:
+    name: Deploy to Test
+    needs: Build
+    environment: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        run: ls -la
         working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Setup Node
         uses: actions/setup-node@v1
@@ -45,12 +56,12 @@ jobs:
           cdk synth
         working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Run CDK Bootstrap
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
-            cdk bootstrap
+          cdk bootstrap
         working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Run CDK Deploy
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
           cdk deploy --all --require-approval never
         working-directory: ${{ env.CDK_DIRECTORY }}
