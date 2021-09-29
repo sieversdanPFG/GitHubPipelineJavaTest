@@ -40,12 +40,12 @@ jobs:
           zip -r cdk.zip .
           popd
       - name: Upload cdk.zip Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: cdk-output
-            path: ${{ env.CDK_DIRECTORY }}/cdk.out/cdk.zip
-            if-no-files-found: error
-            retention-days: 3
+        uses: actions/upload-artifact@v2
+        with:
+          name: cdk-output
+          path: ${{ env.CDK_DIRECTORY }}/cdk.out/cdk.zip
+          if-no-files-found: error
+          retention-days: 3
   Deploy-to-Test:
     name: Deploy to Test
     environment: Test
