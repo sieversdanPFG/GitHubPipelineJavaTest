@@ -12,8 +12,8 @@ env:
 jobs:
   Build:
     name: Build
+    environment: Test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -24,15 +24,6 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
         working-directory: ${{ env.CDK_DIRECTORY }}
-      - name: Debug
-        run: ls -la
-        working-directory: ${{ env.CDK_DIRECTORY }}
-  Deploy-To-Test:
-    name: Deploy to Test
-    needs: Build
-    environment: Test
-    runs-on: ubuntu-latest
-    steps:
       - name: Debug
         run: ls -la
         working-directory: ${{ env.CDK_DIRECTORY }}
