@@ -10,9 +10,8 @@ on:
 env:
   CDK_DIRECTORY: "infra"
 jobs:
-  Build:
-    name: Build
-    environment: Test
+  Build-and-Test:
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -24,9 +23,6 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
         working-directory: ${{ env.CDK_DIRECTORY }}
-      - name: Debug
-        run: ls -la
-        working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
@@ -34,25 +30,53 @@ jobs:
       - name: Install AWS CDK
         run: |
           npm install -g aws-cdk
-      - name: Deploy
-        run: echo "Deploying to test"
+      - name: Run CDK Synth
+        run: |
+          cdk synth
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Zip cdk.out
+        run: |
+          pushd ${{ env.CDK_DIRECTORY }}/cdk.out
+          zip -r cdk.zip .
+          popd
+      - name: Upload cdk.zip Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cdk-output
+          path: ${{ env.CDK_DIRECTORY }}/cdk.out/cdk.zip
+          if-no-files-found: error
+          retention-days: 3
+  Deploy-to-Test:
+    name: Deploy to Test
+    environment: Test
+    runs-on: ubuntu-latest
+    needs: Build-and-Test
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Run CDK Synth
+      - name: Install AWS CDK
         run: |
-          cdk synth
-        working-directory: ${{ env.CDK_DIRECTORY }}
+          npm install -g aws-cdk
+      - name: Download CDK Output
+        uses: actions/download-artifact@v2
+        with:
+          name: cdk-output
+      - name: Unzip CDK Output
+        run: |
+          unzip cdk.zip
       - name: Run CDK Bootstrap
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
           cdk bootstrap
-        working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Run CDK Deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
           cdk deploy --all --require-approval never
-        working-directory: ${{ env.CDK_DIRECTORY }}
