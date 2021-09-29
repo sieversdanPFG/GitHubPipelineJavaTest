@@ -1,0 +1,58 @@
+name: Build and Deploy to Test
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+env:
+  CDK_DIRECTORY: "infra"
+jobs:
+  Build:
+    name: Build
+    environment: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Debug
+        run: ls -la
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - name: Install AWS CDK
+        run: |
+          npm install -g aws-cdk
+      - name: Deploy
+        run: echo "Deploying to test"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Run CDK Synth
+        run: |
+          cdk synth
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Run CDK Bootstrap
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        run: |
+          cdk bootstrap
+        working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Run CDK Deploy
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        run: |
+          cdk deploy --all --require-approval never
+        working-directory: ${{ env.CDK_DIRECTORY }}
