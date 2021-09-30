@@ -32,7 +32,7 @@ jobs:
           npm install -g aws-cdk
       - name: Run CDK Synth
         run: |
-          cdk synth
+          cdk synth -v
         working-directory: ${{ env.CDK_DIRECTORY }}
       - name: Copy cdk.json
         run: |
@@ -78,8 +78,8 @@ jobs:
       - name: Run CDK Bootstrap
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
-          cdk bootstrap
+          cdk bootstrap -v
       - name: Run CDK Deploy
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: |
-          cdk deploy --all --require-approval never
+          cdk deploy --all --require-approval never -v
