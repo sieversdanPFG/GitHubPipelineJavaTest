@@ -34,6 +34,9 @@ jobs:
         run: |
           cdk synth
         working-directory: ${{ env.CDK_DIRECTORY }}
+      - name: Copy cdk.json
+        run: |
+          cp ${{ env.CDK_DIRECTORY }}/cdk.json ${{ env.CDK_DIRECTORY }}/cdk.out
       - name: Zip cdk.out
         run: |
           pushd ${{ env.CDK_DIRECTORY }}/cdk.out
